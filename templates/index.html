@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Calorie Checker</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>AI Calorie Checker</h1>
+      <p class="subtitle">Upload a photo of your food and get an instant calorie estimate powered by AI.</p>
+    </header>
+
+    <!-- Upload area -->
+    <div id="upload-area" class="upload-area" role="button" tabindex="0" aria-label="Upload food image">
+      <div class="upload-icon">&#128247;</div>
+      <p class="upload-text">Drag &amp; drop a food photo here</p>
+      <p class="upload-hint">or click to browse &mdash; JPG, PNG, WEBP, GIF up to 10 MB</p>
+      <input type="file" id="file-input" accept="image/jpeg,image/png,image/gif,image/webp" hidden />
+    </div>
+
+    <!-- Preview -->
+    <div id="preview-area" class="preview-area hidden">
+      <img id="preview-img" src="" alt="Food preview" />
+      <button id="change-btn" class="btn-secondary">Choose a different photo</button>
+    </div>
+
+    <!-- Analyze button -->
+    <button id="analyze-btn" class="btn-primary hidden">Analyze Calories</button>
+
+    <!-- Loading state -->
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <p>Analyzing your food with AI&hellip;</p>
+    </div>
+
+    <!-- Error -->
+    <div id="error-box" class="error-box hidden" role="alert"></div>
+
+    <!-- Results -->
+    <div id="results" class="results hidden"></div>
+  </div>
+
+  <script>
+    const uploadArea   = document.getElementById('upload-area');
+    const fileInput    = document.getElementById('file-input');
+    const previewArea  = document.getElementById('preview-area');
+    const previewImg   = document.getElementById('preview-img');
+    const changeBtn    = document.getElementById('change-btn');
+    const analyzeBtn   = document.getElementById('analyze-btn');
+    const loading      = document.getElementById('loading');
+    const errorBox     = document.getElementById('error-box');
+    const results      = document.getElementById('results');
+
+    let selectedFile = null;
+
+    // --- File selection ---
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+    });
+
+    // Drag-and-drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+
+    function handleFile(file) {
+      if (!file.type.startsWith('image/')) {
+        showError('Please select an image file (JPG, PNG, WEBP, or GIF).');
+        return;
+      }
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        uploadArea.classList.add('hidden');
+        previewArea.classList.remove('hidden');
+        analyzeBtn.classList.remove('hidden');
+        hideError();
+        results.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    changeBtn.addEventListener('click', resetToUpload);
+
+    function resetToUpload() {
+      selectedFile = null;
+      fileInput.value = '';
+      previewImg.src = '';
+      previewArea.classList.add('hidden');
+      analyzeBtn.classList.add('hidden');
+      uploadArea.classList.remove('hidden');
+      results.classList.add('hidden');
+      hideError();
+    }
+
+    // --- Analyze ---
+
+    analyzeBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      showLoading();
+      hideError();
+      results.classList.add('hidden');
+
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+
+      try {
+        const response = await fetch('/analyze', { method: 'POST', body: formData });
+        const data = await response.json();
+
+        hideLoading();
+
+        if (data.error) {
+          showError(data.error);
+        } else {
+          renderResults(data);
+        }
+      } catch (err) {
+        hideLoading();
+        showError('Network error. Please check your connection and try again.');
+      }
+    });
+
+    // --- Render results ---
+
+    function renderResults(data) {
+      if (!data.foods || data.foods.length === 0) {
+        results.innerHTML = `
+          <div class="no-food">
+            <div class="no-food-icon">&#129300;</div>
+            <p>No food detected in this image.</p>
+            <p class="no-food-hint">Try a clearer photo with food in frame.</p>
+          </div>`;
+        results.classList.remove('hidden');
+        return;
+      }
+
+      const mealLabel = data.meal_type_guess
+        ? data.meal_type_guess.charAt(0).toUpperCase() + data.meal_type_guess.slice(1)
+        : '';
+
+      const rows = data.foods.map(food => `
+        <tr>
+          <td class="food-name">${escapeHtml(food.name)}</td>
+          <td>${escapeHtml(food.portion_estimate)}</td>
+          <td class="calories-cell">${food.calories} kcal</td>
+          <td><span class="badge badge-${escapeHtml(food.confidence)}">${escapeHtml(food.confidence)}</span></td>
+          ${food.notes ? `<td class="notes-cell">${escapeHtml(food.notes)}</td>` : '<td></td>'}
+        </tr>
+      `).join('');
+
+      results.innerHTML = `
+        <div class="total-card">
+          <div class="total-label">Total Estimated Calories</div>
+          <div class="total-value">${data.total_calories} <span class="kcal">kcal</span></div>
+          ${mealLabel && mealLabel !== 'Unknown' ? `<div class="meal-type">${mealLabel}</div>` : ''}
+        </div>
+
+        <div class="table-wrapper">
+          <table class="foods-table">
+            <thead>
+              <tr>
+                <th>Food</th>
+                <th>Portion</th>
+                <th>Calories</th>
+                <th>Confidence</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+
+        ${data.disclaimer ? `<p class="disclaimer">&#9432; ${escapeHtml(data.disclaimer)}</p>` : ''}
+
+        <button class="btn-secondary retry-btn" onclick="resetToUpload()">Analyze another photo</button>
+      `;
+
+      results.classList.remove('hidden');
+    }
+
+    // --- Helpers ---
+
+    function showLoading() {
+      analyzeBtn.classList.add('hidden');
+      loading.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+      loading.classList.add('hidden');
+      analyzeBtn.classList.remove('hidden');
+    }
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorBox.classList.add('hidden');
+      errorBox.textContent = '';
+    }
+
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
