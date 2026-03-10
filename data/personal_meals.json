@@ -1,0 +1,201 @@
+{
+  "_meta": {
+    "description": "Personal baseline meals used as reference values for AI differential comparisons",
+    "version": "1.0",
+    "note": "All values are typical homemade portions. Calories are estimates based on standard nutritional data."
+  },
+  "meals": {
+    "my_classic_breakfast": {
+      "label": "My Classic Breakfast",
+      "description": "Standard homemade breakfast prepared at home",
+      "typical_time": "morning",
+      "items": [
+        {
+          "name": "Eggs (scrambled)",
+          "quantity": 2,
+          "unit": "large eggs",
+          "calories": 182,
+          "protein_g": 12,
+          "carbs_g": 2,
+          "fat_g": 14,
+          "notes": "Cooked in 1 tsp butter"
+        },
+        {
+          "name": "Whole wheat toast",
+          "quantity": 2,
+          "unit": "slices",
+          "calories": 138,
+          "protein_g": 6,
+          "carbs_g": 26,
+          "fat_g": 2,
+          "notes": "No butter added"
+        },
+        {
+          "name": "Avocado",
+          "quantity": 0.5,
+          "unit": "medium avocado",
+          "calories": 120,
+          "protein_g": 1,
+          "carbs_g": 6,
+          "fat_g": 11,
+          "notes": "Sliced on toast"
+        },
+        {
+          "name": "Orange juice",
+          "quantity": 1,
+          "unit": "cup (240ml)",
+          "calories": 112,
+          "protein_g": 2,
+          "carbs_g": 26,
+          "fat_g": 0,
+          "notes": "Fresh squeezed"
+        },
+        {
+          "name": "Mixed berries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "calories": 42,
+          "protein_g": 1,
+          "carbs_g": 10,
+          "fat_g": 0,
+          "notes": "Blueberries, strawberries"
+        }
+      ],
+      "totals": {
+        "calories": 594,
+        "protein_g": 22,
+        "carbs_g": 70,
+        "fat_g": 27
+      }
+    },
+
+    "my_classic_coffee": {
+      "label": "My Classic Coffee",
+      "description": "Morning coffee prepared at home",
+      "typical_time": "morning, alongside breakfast",
+      "items": [
+        {
+          "name": "Brewed coffee",
+          "quantity": 2,
+          "unit": "cups (480ml)",
+          "calories": 10,
+          "protein_g": 0,
+          "carbs_g": 0,
+          "fat_g": 0,
+          "notes": "Medium roast drip"
+        },
+        {
+          "name": "Whole milk",
+          "quantity": 4,
+          "unit": "tbsp (60ml)",
+          "calories": 36,
+          "protein_g": 2,
+          "carbs_g": 3,
+          "fat_g": 2,
+          "notes": "Added to both cups"
+        },
+        {
+          "name": "Sugar",
+          "quantity": 1,
+          "unit": "tsp",
+          "calories": 16,
+          "protein_g": 0,
+          "carbs_g": 4,
+          "fat_g": 0,
+          "notes": "One spoon total across both cups"
+        }
+      ],
+      "totals": {
+        "calories": 62,
+        "protein_g": 2,
+        "carbs_g": 7,
+        "fat_g": 2
+      }
+    },
+
+    "my_classic_dinner": {
+      "label": "My Classic Dinner",
+      "description": "Standard homemade weeknight dinner",
+      "typical_time": "evening",
+      "items": [
+        {
+          "name": "Grilled chicken breast",
+          "quantity": 1,
+          "unit": "medium breast (~150g)",
+          "calories": 248,
+          "protein_g": 46,
+          "carbs_g": 0,
+          "fat_g": 6,
+          "notes": "Seasoned with olive oil, salt, pepper, garlic"
+        },
+        {
+          "name": "Brown rice",
+          "quantity": 1,
+          "unit": "cup cooked",
+          "calories": 218,
+          "protein_g": 5,
+          "carbs_g": 46,
+          "fat_g": 2,
+          "notes": "Plain, no butter"
+        },
+        {
+          "name": "Steamed broccoli",
+          "quantity": 1,
+          "unit": "cup florets",
+          "calories": 55,
+          "protein_g": 4,
+          "carbs_g": 11,
+          "fat_g": 1,
+          "notes": "Light drizzle of olive oil"
+        },
+        {
+          "name": "Side salad",
+          "quantity": 1,
+          "unit": "small bowl",
+          "calories": 45,
+          "protein_g": 1,
+          "carbs_g": 7,
+          "fat_g": 2,
+          "notes": "Mixed greens, cherry tomatoes, cucumber"
+        },
+        {
+          "name": "Olive oil dressing",
+          "quantity": 1,
+          "unit": "tbsp",
+          "calories": 119,
+          "protein_g": 0,
+          "carbs_g": 0,
+          "fat_g": 14,
+          "notes": "Olive oil + lemon juice"
+        },
+        {
+          "name": "Water",
+          "quantity": 2,
+          "unit": "glasses",
+          "calories": 0,
+          "protein_g": 0,
+          "carbs_g": 0,
+          "fat_g": 0,
+          "notes": "Plain water"
+        }
+      ],
+      "totals": {
+        "calories": 685,
+        "protein_g": 56,
+        "carbs_g": 64,
+        "fat_g": 25
+      }
+    }
+  },
+
+  "combined_day": {
+    "label": "Full Classic Day (Breakfast + Coffee + Dinner)",
+    "note": "Does not include lunch or snacks",
+    "totals": {
+      "calories": 1341,
+      "protein_g": 80,
+      "carbs_g": 141,
+      "fat_g": 54
+    }
+  }
+}
