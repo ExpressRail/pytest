@@ -10,8 +10,29 @@
   <div class="container">
     <header>
       <h1>AI Calorie Checker</h1>
-      <p class="subtitle">Upload a photo of your food and get an instant calorie estimate powered by AI.</p>
+      <p class="subtitle">Upload a food photo — get calories or compare against your homemade classics.</p>
     </header>
+
+    <!-- Tab switcher -->
+    <div class="tab-bar" role="tablist">
+      <button class="tab active" data-mode="check" role="tab" aria-selected="true">
+        &#128247; Calorie Check
+      </button>
+      <button class="tab" data-mode="compare" role="tab" aria-selected="false">
+        &#9878; Compare to My Classic
+      </button>
+    </div>
+
+    <!-- Compare mode: baseline selector -->
+    <div id="baseline-row" class="baseline-row hidden">
+      <label for="baseline-select">Compare against:</label>
+      <select id="baseline-select">
+        <option value="auto">&#128269; Auto-detect best match</option>
+        {% for key, label in baselines.items() %}
+        <option value="{{ key }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
     <!-- Upload area -->
     <div id="upload-area" class="upload-area" role="button" tabindex="0" aria-label="Upload food image">
@@ -27,13 +48,13 @@
       <button id="change-btn" class="btn-secondary">Choose a different photo</button>
     </div>
 
-    <!-- Analyze button -->
+    <!-- Action button -->
     <button id="analyze-btn" class="btn-primary hidden">Analyze Calories</button>
 
-    <!-- Loading state -->
+    <!-- Loading -->
     <div id="loading" class="loading hidden">
       <div class="spinner"></div>
-      <p>Analyzing your food with AI&hellip;</p>
+      <p id="loading-msg">Analyzing your food with AI&hellip;</p>
     </div>
 
     <!-- Error -->
@@ -44,40 +65,65 @@
   </div>
 
   <script>
-    const uploadArea   = document.getElementById('upload-area');
-    const fileInput    = document.getElementById('file-input');
-    const previewArea  = document.getElementById('preview-area');
-    const previewImg   = document.getElementById('preview-img');
-    const changeBtn    = document.getElementById('change-btn');
-    const analyzeBtn   = document.getElementById('analyze-btn');
-    const loading      = document.getElementById('loading');
-    const errorBox     = document.getElementById('error-box');
-    const results      = document.getElementById('results');
-
+    // -----------------------------------------------------------------------
+    // State
+    // -----------------------------------------------------------------------
     let selectedFile = null;
+    let currentMode  = 'check'; // 'check' | 'compare'
 
-    // --- File selection ---
+    // -----------------------------------------------------------------------
+    // Element refs
+    // -----------------------------------------------------------------------
+    const tabs          = document.querySelectorAll('.tab');
+    const baselineRow   = document.getElementById('baseline-row');
+    const baselineSelect= document.getElementById('baseline-select');
+    const uploadArea    = document.getElementById('upload-area');
+    const fileInput     = document.getElementById('file-input');
+    const previewArea   = document.getElementById('preview-area');
+    const previewImg    = document.getElementById('preview-img');
+    const changeBtn     = document.getElementById('change-btn');
+    const analyzeBtn    = document.getElementById('analyze-btn');
+    const loading       = document.getElementById('loading');
+    const loadingMsg    = document.getElementById('loading-msg');
+    const errorBox      = document.getElementById('error-box');
+    const results       = document.getElementById('results');
 
-    uploadArea.addEventListener('click', () => fileInput.click());
-    uploadArea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+    // -----------------------------------------------------------------------
+    // Tab switching
+    // -----------------------------------------------------------------------
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        currentMode = tab.dataset.mode;
+        baselineRow.classList.toggle('hidden', currentMode !== 'compare');
+        analyzeBtn.textContent = currentMode === 'compare'
+          ? '⇌ Compare to My Classic'
+          : 'Analyze Calories';
+        results.classList.add('hidden');
+        hideError();
+      });
     });
 
+    // -----------------------------------------------------------------------
+    // File selection
+    // -----------------------------------------------------------------------
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+    });
     fileInput.addEventListener('change', () => {
       if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
     });
 
-    // Drag-and-drop
-    uploadArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadArea.classList.add('dragover');
+    uploadArea.addEventListener('dragover', e => {
+      e.preventDefault(); uploadArea.classList.add('dragover');
     });
     uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-    uploadArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadArea.classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (file) handleFile(file);
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault(); uploadArea.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
     });
 
     function handleFile(file) {
@@ -87,11 +133,12 @@
       }
       selectedFile = file;
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         previewImg.src = e.target.result;
         uploadArea.classList.add('hidden');
         previewArea.classList.remove('hidden');
         analyzeBtn.classList.remove('hidden');
+        analyzeBtn.textContent = currentMode === 'compare' ? '⇌ Compare to My Classic' : 'Analyze Calories';
         hideError();
         results.classList.add('hidden');
       };
@@ -103,7 +150,7 @@
     function resetToUpload() {
       selectedFile = null;
       fileInput.value = '';
-      previewImg.src = '';
+      previewImg.src  = '';
       previewArea.classList.add('hidden');
       analyzeBtn.classList.add('hidden');
       uploadArea.classList.remove('hidden');
@@ -111,28 +158,36 @@
       hideError();
     }
 
-    // --- Analyze ---
-
+    // -----------------------------------------------------------------------
+    // Submit
+    // -----------------------------------------------------------------------
     analyzeBtn.addEventListener('click', async () => {
       if (!selectedFile) return;
 
-      showLoading();
+      showLoading(currentMode === 'compare'
+        ? 'Agent is analyzing and comparing — this may take a moment…'
+        : 'Analyzing your food with AI…');
       hideError();
       results.classList.add('hidden');
 
       const formData = new FormData();
       formData.append('image', selectedFile);
+      if (currentMode === 'compare') {
+        formData.append('baseline', baselineSelect.value);
+      }
+
+      const endpoint = currentMode === 'compare' ? '/compare' : '/analyze';
 
       try {
-        const response = await fetch('/analyze', { method: 'POST', body: formData });
-        const data = await response.json();
-
+        const res  = await fetch(endpoint, { method: 'POST', body: formData });
+        const data = await res.json();
         hideLoading();
-
         if (data.error) {
           showError(data.error);
+        } else if (currentMode === 'compare') {
+          renderCompare(data);
         } else {
-          renderResults(data);
+          renderCalories(data);
         }
       } catch (err) {
         hideLoading();
@@ -140,16 +195,12 @@
       }
     });
 
-    // --- Render results ---
-
-    function renderResults(data) {
+    // -----------------------------------------------------------------------
+    // Render: calorie check
+    // -----------------------------------------------------------------------
+    function renderCalories(data) {
       if (!data.foods || data.foods.length === 0) {
-        results.innerHTML = `
-          <div class="no-food">
-            <div class="no-food-icon">&#129300;</div>
-            <p>No food detected in this image.</p>
-            <p class="no-food-hint">Try a clearer photo with food in frame.</p>
-          </div>`;
+        results.innerHTML = noFoodHtml();
         results.classList.remove('hidden');
         return;
       }
@@ -158,15 +209,14 @@
         ? data.meal_type_guess.charAt(0).toUpperCase() + data.meal_type_guess.slice(1)
         : '';
 
-      const rows = data.foods.map(food => `
+      const rows = data.foods.map(f => `
         <tr>
-          <td class="food-name">${escapeHtml(food.name)}</td>
-          <td>${escapeHtml(food.portion_estimate)}</td>
-          <td class="calories-cell">${food.calories} kcal</td>
-          <td><span class="badge badge-${escapeHtml(food.confidence)}">${escapeHtml(food.confidence)}</span></td>
-          ${food.notes ? `<td class="notes-cell">${escapeHtml(food.notes)}</td>` : '<td></td>'}
-        </tr>
-      `).join('');
+          <td class="food-name">${h(f.name)}</td>
+          <td>${h(f.portion_estimate)}</td>
+          <td class="calories-cell">${f.calories} kcal</td>
+          <td><span class="badge badge-${h(f.confidence)}">${h(f.confidence)}</span></td>
+          <td class="notes-cell">${h(f.notes || '')}</td>
+        </tr>`).join('');
 
       results.innerHTML = `
         <div class="total-card">
@@ -174,33 +224,133 @@
           <div class="total-value">${data.total_calories} <span class="kcal">kcal</span></div>
           ${mealLabel && mealLabel !== 'Unknown' ? `<div class="meal-type">${mealLabel}</div>` : ''}
         </div>
-
         <div class="table-wrapper">
           <table class="foods-table">
-            <thead>
-              <tr>
-                <th>Food</th>
-                <th>Portion</th>
-                <th>Calories</th>
-                <th>Confidence</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Food</th><th>Portion</th><th>Calories</th><th>Confidence</th><th>Notes</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
-
-        ${data.disclaimer ? `<p class="disclaimer">&#9432; ${escapeHtml(data.disclaimer)}</p>` : ''}
-
-        <button class="btn-secondary retry-btn" onclick="resetToUpload()">Analyze another photo</button>
-      `;
+        ${data.disclaimer ? `<p class="disclaimer">&#9432; ${h(data.disclaimer)}</p>` : ''}
+        <button class="btn-secondary retry-btn" onclick="resetToUpload()">Analyze another photo</button>`;
 
       results.classList.remove('hidden');
     }
 
-    // --- Helpers ---
+    // -----------------------------------------------------------------------
+    // Render: compare
+    // -----------------------------------------------------------------------
+    function renderCompare(data) {
+      const delta     = data.calorie_delta;
+      const absDelta  = Math.abs(delta);
+      const direction = data.delta_direction; // 'more' | 'fewer' | 'same'
+      const pct       = data.delta_percent;
+      const verdict   = data.verdict;         // 'higher' | 'lower' | 'similar'
 
-    function showLoading() {
+      const deltaClass = verdict === 'higher' ? 'delta-higher'
+                       : verdict === 'lower'  ? 'delta-lower'
+                       : 'delta-similar';
+
+      const deltaSign  = verdict === 'higher' ? '+' : verdict === 'lower' ? '−' : '±';
+      const deltaIcon  = verdict === 'higher' ? '▲' : verdict === 'lower' ? '▼' : '≈';
+
+      // Analyzed foods rows
+      const analyzedRows = (data.analyzed_foods || []).map(f => `
+        <tr>
+          <td class="food-name">${h(f.name)}</td>
+          <td>${h(f.portion_estimate)}</td>
+          <td class="calories-cell">${f.calories} kcal</td>
+          <td><span class="badge badge-${h(f.confidence)}">${h(f.confidence)}</span></td>
+        </tr>`).join('');
+
+      // Item comparison observations
+      const compItems = (data.item_comparisons || []).map(s =>
+        `<li>${h(s)}</li>`).join('');
+
+      // Macro delta rows (only show if present)
+      const md = data.macro_deltas || {};
+      const macroRows = ['protein_g', 'carbs_g', 'fat_g'].map(k => {
+        if (md[k] == null) return '';
+        const val = md[k];
+        const sign = val > 0 ? '+' : '';
+        const cls  = Math.abs(val) < 2 ? '' : val > 0 ? 'macro-up' : 'macro-down';
+        const label = k === 'protein_g' ? 'Protein' : k === 'carbs_g' ? 'Carbs' : 'Fat';
+        return `<tr><td>${label}</td><td class="${cls}">${sign}${val}g</td></tr>`;
+      }).join('');
+
+      results.innerHTML = `
+        <!-- Delta hero card -->
+        <div class="delta-card ${deltaClass}">
+          <div class="delta-icon">${deltaIcon}</div>
+          <div class="delta-calories">${deltaSign}${absDelta} kcal</div>
+          <div class="delta-label">
+            This meal has <strong>${absDelta} kcal ${direction}</strong>
+            than your <em>${h(data.baseline_label)}</em>
+            (${deltaSign}${pct}%)
+          </div>
+        </div>
+
+        <!-- Side-by-side summary -->
+        <div class="compare-summary">
+          <div class="summary-box summary-analyzed">
+            <div class="summary-title">&#127869; This Photo</div>
+            <div class="summary-calories">${data.analyzed_total_calories} kcal</div>
+          </div>
+          <div class="summary-vs">vs</div>
+          <div class="summary-box summary-baseline">
+            <div class="summary-title">&#127968; ${h(data.baseline_label)}</div>
+            <div class="summary-calories">${data.baseline_total_calories} kcal</div>
+          </div>
+        </div>
+
+        <!-- Narrative -->
+        <div class="narrative-box">
+          <p>${h(data.narrative)}</p>
+        </div>
+
+        <!-- Analyzed breakdown -->
+        <h3 class="section-heading">What the AI saw in the photo</h3>
+        <div class="table-wrapper">
+          <table class="foods-table">
+            <thead><tr><th>Food</th><th>Portion</th><th>Calories</th><th>Confidence</th></tr></thead>
+            <tbody>${analyzedRows || '<tr><td colspan="4" style="text-align:center;color:#9ca3af">No food detected</td></tr>'}</tbody>
+          </table>
+        </div>
+
+        ${macroRows ? `
+        <!-- Macro deltas -->
+        <h3 class="section-heading">Macro differences vs your classic</h3>
+        <div class="table-wrapper">
+          <table class="foods-table macro-table">
+            <thead><tr><th>Nutrient</th><th>Delta</th></tr></thead>
+            <tbody>${macroRows}</tbody>
+          </table>
+        </div>` : ''}
+
+        ${compItems ? `
+        <!-- Item observations -->
+        <h3 class="section-heading">Key differences noted</h3>
+        <ul class="item-list">${compItems}</ul>` : ''}
+
+        ${data.disclaimer ? `<p class="disclaimer">&#9432; ${h(data.disclaimer)}</p>` : ''}
+
+        <button class="btn-secondary retry-btn" onclick="resetToUpload()">Compare another photo</button>`;
+
+      results.classList.remove('hidden');
+    }
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+    function noFoodHtml() {
+      return `<div class="no-food">
+        <div class="no-food-icon">&#129300;</div>
+        <p>No food detected in this image.</p>
+        <p class="no-food-hint">Try a clearer photo with food in frame.</p>
+      </div>`;
+    }
+
+    function showLoading(msg) {
+      loadingMsg.textContent = msg;
       analyzeBtn.classList.add('hidden');
       loading.classList.remove('hidden');
     }
@@ -220,13 +370,11 @@
       errorBox.textContent = '';
     }
 
-    function escapeHtml(str) {
+    function h(str) { // XSS-safe HTML escape
       if (str == null) return '';
       return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
     }
   </script>

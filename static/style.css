@@ -17,7 +17,7 @@ body {
 /* Header */
 header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 h1 {
@@ -31,6 +31,71 @@ h1 {
   color: #6b7280;
   font-size: 1rem;
 }
+
+/* ---- Tab bar ---- */
+.tab-bar {
+  display: flex;
+  gap: 0.5rem;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.4rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab:hover { background: #f3f4f6; color: #374151; }
+
+.tab.active {
+  background: #5c6bc0;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---- Baseline selector row ---- */
+.baseline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.baseline-row label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.baseline-row select {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  color: #374151;
+  background: #f9fafb;
+  cursor: pointer;
+  outline: none;
+}
+
+.baseline-row select:focus { border-color: #5c6bc0; }
 
 /* Upload area */
 .upload-area {
@@ -51,10 +116,7 @@ h1 {
   background: #f3f4ff;
 }
 
-.upload-icon {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
-}
+.upload-icon { font-size: 3.5rem; margin-bottom: 1rem; }
 
 .upload-text {
   font-size: 1.1rem;
@@ -63,16 +125,10 @@ h1 {
   margin-bottom: 0.4rem;
 }
 
-.upload-hint {
-  font-size: 0.875rem;
-  color: #9ca3af;
-}
+.upload-hint { font-size: 0.875rem; color: #9ca3af; }
 
 /* Preview */
-.preview-area {
-  text-align: center;
-  margin-bottom: 1rem;
-}
+.preview-area { text-align: center; margin-bottom: 1rem; }
 
 .preview-area img {
   max-width: 100%;
@@ -99,7 +155,7 @@ h1 {
   margin-bottom: 1rem;
 }
 
-.btn-primary:hover { background: #3f51b5; }
+.btn-primary:hover  { background: #3f51b5; }
 .btn-primary:active { background: #303f9f; }
 
 .btn-secondary {
@@ -114,22 +170,12 @@ h1 {
   transition: background 0.2s, color 0.2s;
 }
 
-.btn-secondary:hover {
-  background: #5c6bc0;
-  color: #fff;
-}
+.btn-secondary:hover { background: #5c6bc0; color: #fff; }
 
-.retry-btn {
-  display: block;
-  margin: 1.5rem auto 0;
-}
+.retry-btn { display: block; margin: 1.5rem auto 0; }
 
 /* Loading */
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #6b7280;
-}
+.loading { text-align: center; padding: 2rem; color: #6b7280; }
 
 .spinner {
   width: 44px;
@@ -155,11 +201,9 @@ h1 {
 }
 
 /* Results */
-.results {
-  margin-top: 1.5rem;
-}
+.results { margin-top: 1.5rem; }
 
-/* Total card */
+/* ---- Calorie check: total card ---- */
 .total-card {
   background: linear-gradient(135deg, #5c6bc0, #3f51b5);
   color: #fff;
@@ -167,7 +211,7 @@ h1 {
   padding: 1.75rem 2rem;
   text-align: center;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 20px rgba(63, 81, 181, 0.35);
+  box-shadow: 0 4px 20px rgba(63,81,181,0.35);
 }
 
 .total-label {
@@ -178,23 +222,109 @@ h1 {
   margin-bottom: 0.5rem;
 }
 
-.total-value {
-  font-size: 3rem;
+.total-value { font-size: 3rem; font-weight: 700; line-height: 1; }
+.kcal        { font-size: 1.25rem; font-weight: 400; opacity: 0.8; }
+.meal-type   { margin-top: 0.6rem; font-size: 0.9rem; opacity: 0.75; }
+
+/* ---- Compare: delta hero card ---- */
+.delta-card {
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  text-align: center;
+  margin-bottom: 1.25rem;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.delta-higher { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.delta-lower  { background: linear-gradient(135deg, #10b981, #059669); }
+.delta-similar{ background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+.delta-icon     { font-size: 2rem; margin-bottom: 0.4rem; }
+.delta-calories { font-size: 2.75rem; font-weight: 700; line-height: 1; margin-bottom: 0.5rem; }
+.delta-label    { font-size: 1rem; opacity: 0.9; line-height: 1.4; }
+.delta-label strong { font-weight: 700; }
+.delta-label em { font-style: normal; opacity: 0.85; }
+
+/* ---- Compare: side-by-side summary ---- */
+.compare-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.summary-box {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.1rem 1rem;
+  text-align: center;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+}
+
+.summary-analyzed { border-top: 3px solid #f59e0b; }
+.summary-baseline  { border-top: 3px solid #5c6bc0; }
+
+.summary-title    { font-size: 0.8rem; font-weight: 600; color: #6b7280; margin-bottom: 0.35rem; }
+.summary-calories { font-size: 1.6rem; font-weight: 700; color: #1a1a2e; }
+
+.summary-vs {
+  font-size: 1.1rem;
   font-weight: 700;
-  line-height: 1;
+  color: #9ca3af;
+  flex-shrink: 0;
 }
 
-.kcal {
-  font-size: 1.25rem;
-  font-weight: 400;
-  opacity: 0.8;
+/* ---- Compare: narrative ---- */
+.narrative-box {
+  background: #fff;
+  border-left: 4px solid #5c6bc0;
+  border-radius: 0 10px 10px 0;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.6;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
-.meal-type {
-  margin-top: 0.6rem;
+/* ---- Section headings ---- */
+.section-heading {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9ca3af;
+  margin: 1.25rem 0 0.5rem;
+}
+
+/* ---- Item comparison list ---- */
+.item-list {
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  list-style: none;
+}
+
+.item-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
   font-size: 0.9rem;
-  opacity: 0.75;
+  color: #374151;
+  line-height: 1.5;
 }
+
+.item-list li::before { content: "• "; color: #5c6bc0; font-weight: 700; }
+.item-list li:last-child { border-bottom: none; }
+
+/* ---- Macro delta table ---- */
+.macro-table { max-width: 280px; }
+
+.macro-up   { color: #dc2626; font-weight: 700; }
+.macro-down { color: #059669; font-weight: 700; }
 
 /* Table */
 .table-wrapper {
@@ -231,20 +361,11 @@ h1 {
 }
 
 .foods-table tr:last-child td { border-bottom: none; }
-.foods-table tr:hover td { background: #f9fafb; }
+.foods-table tr:hover td      { background: #f9fafb; }
 
-.food-name { font-weight: 600; }
-
-.calories-cell {
-  font-weight: 700;
-  color: #374151;
-  white-space: nowrap;
-}
-
-.notes-cell {
-  color: #6b7280;
-  font-size: 0.85rem;
-}
+.food-name     { font-weight: 600; }
+.calories-cell { font-weight: 700; color: #374151; white-space: nowrap; }
+.notes-cell    { color: #6b7280; font-size: 0.85rem; }
 
 /* Confidence badges */
 .badge {
